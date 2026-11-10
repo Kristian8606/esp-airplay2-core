@@ -1,0 +1,12 @@
+esp-airplay2-core
+Copyright 2026 Kristian Dimitrov
+
+This repository is licensed under the Apache License, Version 2.0 (see
+LICENSE). Each component in components/ carries its own copy of the license
+and a NOTICE.
+
+Not covered by the Apache License:
+- components/ap2_core/src/fairplay/fairplay_tables.c: fixed interop data;
+  see components/ap2_core/NOTICE.
+- Components fetched by the ESP-IDF component manager, each under its own
+  license.
