@@ -1,0 +1,21 @@
+# The options a firmware defines for ap2_core (README.md, "Kconfig options").
+menu "AirPlay build check"
+    config AIRPLAY_HOMEKIT
+        bool "HomeKit"
+        default y
+    config AIRPLAY_HOMEKIT_MANUFACTURER
+        string "Manufacturer"
+        default "Espressif"
+        depends on AIRPLAY_HOMEKIT
+    config AIRPLAY_HOMEKIT_SETUP_CODE
+        string "HomeKit pair-setup code"
+        default "3939"
+        depends on AIRPLAY_HOMEKIT
+    config ENABLE_AIRPLAY_ARTWORK
+        bool "Advertise artwork support"
+        default y if AIRPLAY_HOMEKIT
+        default n
+    config AIRPLAY_LOG_RTSP_REQUESTS
+        bool "Log every RTSP request and reply"
+        default n
+endmenu

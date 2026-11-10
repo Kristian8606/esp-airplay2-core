@@ -1,0 +1,26 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [esp32s3, esp32p4]
+        config: [homekit, plain]
+    container: espressif/idf:v6.0.2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.target }} / ${{ matrix.config }}
+        shell: bash
+        run: |
+          . "$IDF_PATH/export.sh"
+          cd build_check
+          dir="build_${{ matrix.target }}_${{ matrix.config }}"
+          idf.py -B "$dir" -D SDKCONFIG="$dir/sdkconfig" \
+            -D SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.ci.${{ matrix.config }}" \
+            set-target ${{ matrix.target }} build
