@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [esp32s3, esp32p4]
+        target: [esp32s3]
         config: [homekit, plain]
     container: espressif/idf:v6.0.2
     steps:

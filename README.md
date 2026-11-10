@@ -217,14 +217,13 @@ link step, the hooks and the Kconfig options. It is compiled and linked,
 never run. If a change here needs something new from the firmware, this
 build fails until the stubs, and this README, say so.
 
-It is built for `esp32s3` and `esp32p4`, each with HomeKit on (with artwork
-and the RTSP log) and off, on every push
+It is built for `esp32s3`, with HomeKit on (with artwork and the RTSP log)
+and off, on every push
 ([`.github/workflows/build.yml`](.github/workflows/build.yml), ESP-IDF
 v6.0.2). Locally, with ESP-IDF exported:
 
 ```sh
-tools/build_check.sh            # all chips
-tools/build_check.sh esp32p4    # one chip
+tools/build_check.sh
 ```
 
 ## Documentation
