@@ -33,11 +33,11 @@ dependencies:
   ap2_core:
     git: https://github.com/Kristian8606/esp-airplay2-core.git
     path: components/ap2_core
-    version: v1.0.1
+    version: v1.1.0
   apple_clock:
     git: https://github.com/Kristian8606/esp-airplay2-core.git
     path: components/apple_clock
-    version: v1.0.1
+    version: v1.1.0
 ```
 
 A change here reaches a firmware only when that firmware moves to the new
@@ -45,19 +45,20 @@ tag, after its own test.
 
 ### Working on the components
 
-While developing, point the firmware at a local checkout and try as often as
-needed, without tags:
+While developing, build the firmware with a local checkout of a component
+and try as often as needed, without tags. With ESP-IDF v6.1 an
+`override_path` on these git dependencies is not applied (the component
+manager takes the git version again); a component of the same name in
+`EXTRA_COMPONENT_DIRS` is, from the command line:
 
-```yaml
-  ap2_core:
-    git: https://github.com/Kristian8606/esp-airplay2-core.git
-    path: components/ap2_core
-    version: v1.0.1
-    override_path: ../../esp-airplay2-core/components/ap2_core
+```bash
+idf.py -B build_dev -D EXTRA_COMPONENT_DIRS=$HOME/esp-airplay2-core/components/apple_clock build
 ```
 
-When it works: commit and tag here, remove `override_path` and raise the
-version in the firmware. `override_path` is never committed in a firmware.
+That run rewrites the firmware's `dependencies.lock`: keep a copy and put it
+back afterwards, and use a separate build folder (`-D` values stay in its
+CMake cache). When it works: commit and tag here, and raise the version in
+the firmware.
 
 ### Versions
 
@@ -208,6 +209,10 @@ Later:
   engine;
 - `apple_clock_get()`, `apple_clock_at()`, `apple_clock_to_local()`: the
   sender's time for playout;
+- optional, from v1.1.0: `apple_clock_set_rx_time_hook()`: a firmware whose
+  packets wait on the way to its sockets (the P4 Gateway, whose Wi-Fi
+  co-processor time-stamps PTP packets as they come from the air) gives the
+  local time each Sync came in. Without a hook nothing changes;
 - `ap2_pairings_has_admin()`: whether the receiver is in a home.
 
 The headers in `components/*/include` describe every function.

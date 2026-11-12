@@ -57,7 +57,14 @@ static struct {
   uint16_t sync_seq, req_seq;
   int64_t sync_rx, sync_corr, t1, t2, t3, next_req, period;
   uint32_t sent, answered, send_errors;
+  /* The Sync behind t2, for the receive-time hook. */
+  uint8_t sync_port_id[10], t2_port_id[10];
+  uint16_t t2_seq;
+  uint32_t rx_hooked, rx_unhooked;
 } s;
+
+static apple_clock_rx_time_hook_t volatile s_rx_hook;
+#define RX_HOOK_MAX_EARLY_NS 100000000LL
 
 /* RTSP control and the published snapshot, shared with other tasks. */
 static portMUX_TYPE s_mux = portMUX_INITIALIZER_UNLOCKED;
@@ -190,6 +197,7 @@ static void request(int64_t t1, int64_t t2) {
   const struct sockaddr_in dst = {.sin_family = AF_INET, .sin_port = htons(319),
                                   .sin_addr.s_addr = s.peer};
   s.t1 = t1; s.t2 = t2; s.t3 = now_ns();
+  s.t2_seq = s.sync_seq; memcpy(s.t2_port_id, s.sync_port_id, sizeof(s.t2_port_id));
   s.next_req = s.t3 + s.period; /* also bound retries after a send error */
   if (sendto(s.event_fd, b, sizeof(b), MSG_DONTWAIT,
              (const struct sockaddr *)&dst, sizeof(dst)) != sizeof(b)) {
@@ -257,6 +265,7 @@ static void message(const uint8_t *d, size_t len, bool event, uint32_t ip,
   int64_t ts;
   if (event && type == 0 && len >= 44) {
     s.sync_seq = seq; s.sync_rx = rx; s.sync_corr = correction(d);
+    memcpy(s.sync_port_id, d+20, sizeof(s.sync_port_id));
     s.sync_waiting = (be16(d+6) & 0x0200U) != 0;
     if (!s.sync_waiting && timestamp(d+34, &ts) && corrected(ts, s.sync_corr, &ts))
       request(ts, rx);
@@ -270,8 +279,21 @@ static void message(const uint8_t *d, size_t len, bool event, uint32_t ip,
              timestamp(d+34, &ts) && corrected(ts, correction(d), &ts)) {
     s.outstanding = false;
     s.answered++;
+    /* The Sync's time from the hook, when the firmware has a better one. */
+    int64_t t2 = s.t2;
+    const apple_clock_rx_time_hook_t hook = s_rx_hook;
+    if (hook) {
+      int64_t better = 0;
+      if (hook(0, s.t2_seq, s.t2_port_id, s.t2, &better) && better <= s.t2 &&
+          s.t2 - better <= RX_HOOK_MAX_EARLY_NS) {
+        t2 = better;
+        s.rx_hooked++;
+      } else {
+        s.rx_unhooked++;
+      }
+    }
     /* Apple receiveTimestamp is its last Sync tick: correction is ADDED. */
-    acc_add_exchange(s.core, s.t1, s.t2, s.t3, ts);
+    acc_add_exchange(s.core, s.t1, t2, s.t3, ts);
     const int8_t lmi = (int8_t)d[33];
     if (lmi >= -7 && lmi <= 4) {
       const int64_t period = lmi >= 0 ? NS_PER_S << lmi : NS_PER_S >> -lmi;
@@ -376,17 +398,26 @@ static void clock_task(void *arg) {
       last_log = now;
       remember();
       const acc_stats_t st = s.core->stats;
+      char hooked[48] = "";
+      if (s_rx_hook)
+        snprintf(hooked, sizeof(hooked), " | Sync time from hook %u of %u",
+                 (unsigned)s.rx_hooked, (unsigned)(s.rx_hooked + s.rx_unhooked));
       ESP_LOGI(TAG, "%s epoch %u | rate %+.3f ppm, estimate %+.3f ms | "
           "floor RTT %.2f ms | %u points / %u s | seconds +%u -%u far %u | "
-          "steps %u jumps %u | Delay_Req %u answered %u send errors %u",
+          "steps %u jumps %u | Delay_Req %u answered %u send errors %u%s",
           out.ready ? "ready" : "acquiring", (unsigned)l.epoch, l.rate_ppb/1000.0,
           l.est_minus_pub_ns/1e6, l.floor_rtt_ns/1e6, (unsigned)l.points,
           (unsigned)l.span_s, (unsigned)(st.seconds-prev.seconds),
           (unsigned)(st.poor-prev.poor), (unsigned)(st.far-prev.far),
-          (unsigned)st.steps, (unsigned)st.jumps, (unsigned)s.sent, (unsigned)s.answered, (unsigned)s.send_errors);
+          (unsigned)st.steps, (unsigned)st.jumps, (unsigned)s.sent, (unsigned)s.answered, (unsigned)s.send_errors,
+          hooked);
       prev = st;
     }
   }
+}
+
+void apple_clock_set_rx_time_hook(apple_clock_rx_time_hook_t hook) {
+  s_rx_hook = hook;
 }
 
 esp_err_t apple_clock_start(void) {
