@@ -33,11 +33,11 @@ dependencies:
   ap2_core:
     git: https://github.com/Kristian8606/esp-airplay2-core.git
     path: components/ap2_core
-    version: v1.0.0
+    version: v1.0.1
   apple_clock:
     git: https://github.com/Kristian8606/esp-airplay2-core.git
     path: components/apple_clock
-    version: v1.0.0
+    version: v1.0.1
 ```
 
 A change here reaches a firmware only when that firmware moves to the new
@@ -52,7 +52,7 @@ needed, without tags:
   ap2_core:
     git: https://github.com/Kristian8606/esp-airplay2-core.git
     path: components/ap2_core
-    version: v1.0.0
+    version: v1.0.1
     override_path: ../../esp-airplay2-core/components/ap2_core
 ```
 
@@ -158,8 +158,11 @@ esp32-airplay2-surround does this in `airplay_link_ap2_core()` in
 | `void ap2_port_homekit_reset_schedule(void)` | with HomeKit, after acknowledging an authenticated removal from Apple Home | hands the HomeKit reset (erase the keys, reboot) to its own task and returns at once, without heap allocation |
 | `esp_err_t ap2_port_device_mac(uint8_t mac[6])` | at start-up (HomeKit identity) and for `/info` (`deviceid`) | gives the MAC that Apple sees on the network, the same on every boot |
 
-On the ESP32-S3 both firmwares implement `ap2_port_device_mac()` with
-`esp_read_mac(mac, ESP_MAC_WIFI_STA)`.
+esp32-airplay2-surround implements `ap2_port_device_mac()` with
+`esp_read_mac(mac, ESP_MAC_BASE)`, the chip's eFuse MAC: on the ESP32-S3 the
+same as the Wi-Fi station MAC, and on an ESP32-P4 the one it gives its Wi-Fi
+co-processor. airplay-esp32 uses `esp_read_mac(mac, ESP_MAC_WIFI_STA)`.
+`apple_clock` takes its PTP clock identity from `ESP_MAC_BASE` too.
 
 ### 5. Kconfig options
 
