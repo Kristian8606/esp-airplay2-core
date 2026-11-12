@@ -228,7 +228,7 @@ build fails until the stubs, and this README, say so.
 It is built for `esp32s3`, with HomeKit on (with artwork and the RTSP log)
 and off, on every push
 ([`.github/workflows/build.yml`](.github/workflows/build.yml), ESP-IDF
-v6.0.2). Locally, with ESP-IDF exported:
+v6.1). Locally, with ESP-IDF exported:
 
 ```sh
 tools/build_check.sh

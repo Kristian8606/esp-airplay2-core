@@ -1,4 +1,4 @@
 dependencies:
-  idf: ">=6.0.2"
+  idf: ">=6.1"
   espressif/libsodium: "^1.0.21"
   espressif/mdns: "^1.14.1"

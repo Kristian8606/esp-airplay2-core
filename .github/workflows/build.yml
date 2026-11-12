@@ -12,7 +12,7 @@ jobs:
       matrix:
         target: [esp32s3]
         config: [homekit, plain]
-    container: espressif/idf:v6.0.2
+    container: espressif/idf:v6.1
     steps:
       - uses: actions/checkout@v4
       - name: Build ${{ matrix.target }} / ${{ matrix.config }}
