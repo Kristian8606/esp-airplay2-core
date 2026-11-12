@@ -424,9 +424,7 @@ esp_err_t apple_clock_start(void) {
   if (s_started) return ESP_ERR_INVALID_STATE;
   uint8_t mac[6];
   /* The chip's eFuse MAC for the PTP clock identity: the same as the Wi-Fi
-   * station MAC on chips with Wi-Fi (ESP-IDF gives the station the base MAC),
-   * and available on chips without (ESP32-P4 with a Wi-Fi co-processor), where
-   * ESP_MAC_WIFI_STA does not exist. */
+   * station MAC (ESP-IDF gives the station the base MAC). */
   if (esp_read_mac(mac, ESP_MAC_BASE) != ESP_OK) return ESP_FAIL;
   s.core = heap_caps_calloc(1, sizeof(acc_t), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!s.core) return ESP_ERR_NO_MEM;

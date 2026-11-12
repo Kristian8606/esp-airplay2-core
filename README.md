@@ -159,11 +159,10 @@ esp32-airplay2-surround does this in `airplay_link_ap2_core()` in
 | `void ap2_port_homekit_reset_schedule(void)` | with HomeKit, after acknowledging an authenticated removal from Apple Home | hands the HomeKit reset (erase the keys, reboot) to its own task and returns at once, without heap allocation |
 | `esp_err_t ap2_port_device_mac(uint8_t mac[6])` | at start-up (HomeKit identity) and for `/info` (`deviceid`) | gives the MAC that Apple sees on the network, the same on every boot |
 
-esp32-airplay2-surround implements `ap2_port_device_mac()` with
-`esp_read_mac(mac, ESP_MAC_BASE)`, the chip's eFuse MAC: on the ESP32-S3 the
-same as the Wi-Fi station MAC, and on an ESP32-P4 the one it gives its Wi-Fi
-co-processor. airplay-esp32 uses `esp_read_mac(mac, ESP_MAC_WIFI_STA)`.
-`apple_clock` takes its PTP clock identity from `ESP_MAC_BASE` too.
+On the ESP32-S3 both firmwares implement `ap2_port_device_mac()` with
+`esp_read_mac(mac, ESP_MAC_WIFI_STA)`. `apple_clock` takes its PTP clock
+identity from `ESP_MAC_BASE`, the chip's eFuse MAC, which on the ESP32-S3 is
+the same as the Wi-Fi station MAC.
 
 ### 5. Kconfig options
 
@@ -210,9 +209,9 @@ Later:
 - `apple_clock_get()`, `apple_clock_at()`, `apple_clock_to_local()`: the
   sender's time for playout;
 - optional, from v1.1.0: `apple_clock_set_rx_time_hook()`: a firmware whose
-  packets wait on the way to its sockets (the P4 Gateway, whose Wi-Fi
-  co-processor time-stamps PTP packets as they come from the air) gives the
-  local time each Sync came in. Without a hook nothing changes;
+  packets wait on the way to its sockets, and that has an earlier receive
+  time for them, gives the local time each Sync came in. Without a hook
+  nothing changes;
 - `ap2_pairings_has_admin()`: whether the receiver is in a home.
 
 The headers in `components/*/include` describe every function.

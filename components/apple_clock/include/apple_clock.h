@@ -30,10 +30,10 @@ bool apple_clock_to_local(const apple_clock_line_t *line, uint64_t clock_id,
                           uint64_t apple_ns, uint64_t *local_ns);
 
 /* Optional receive-time hook. A firmware whose packets wait on the way to
- * its sockets (the P4 Gateway, whose Wi-Fi is a co-processor that time-stamps
- * PTP packets as they come from the air) can give a better local time
- * (esp_timer, ns) for a received Sync. It is asked when that Sync's exchange
- * completes (its Delay_Resp arrived), so it need not wait for anything:
+ * its sockets, and that has an earlier receive time for them, can give a
+ * better local time (esp_timer, ns) for a received Sync. It is asked when
+ * that Sync's exchange completes (its Delay_Resp arrived), so it need not
+ * wait for anything:
  * type is the PTP messageType (0), seq the sequenceId, port_id the 10-byte
  * sourcePortIdentity, socket_ns the time taken here at recvfrom(). True with
  * *rx_ns uses that time; false, no hook, or a time after socket_ns or more

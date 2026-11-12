@@ -2,8 +2,7 @@
 
 ## Purpose
 
-The Gateway firmware (ESP32-S3 or ESP32-P4, ESP-IDF v6.1) is an AirPlay 2
-receiver.
+The Gateway firmware (ESP32-S3, ESP-IDF v6.1) is an AirPlay 2 receiver.
 iPhones, iPads, Macs and Apple TVs find it through mDNS (Bonjour): two
 services on TCP 7000, `_airplay._tcp` and `_raop._tcp`, with TXT records
 that say what it is and what it supports. This part starts mDNS, sets the
@@ -44,8 +43,7 @@ settings, Wi-Fi and identity functions.
 
 ## Environment
 
-- ESP32-S3 or ESP32-P4 (whose Wi-Fi, and so multicast, goes through its
-  ESP32-C6). The `mdns` component is configured with
+- ESP32-S3. The `mdns` component is configured with
   `CONFIG_MDNS_MAX_SERVICES=4` (this part adds 2; the speaker control link adds
   `_apsurround._tcp` later, so 3 are used), its task and memory in PSRAM
   (`CONFIG_MDNS_TASK_CREATE_FROM_SPIRAM=y`,
