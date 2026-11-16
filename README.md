@@ -33,11 +33,11 @@ dependencies:
   ap2_core:
     git: https://github.com/Kristian8606/esp-airplay2-core.git
     path: components/ap2_core
-    version: v1.1.0
+    version: v1.2.0
   apple_clock:
     git: https://github.com/Kristian8606/esp-airplay2-core.git
     path: components/apple_clock
-    version: v1.1.0
+    version: v1.2.0
 ```
 
 A change here reaches a firmware only when that firmware moves to the new
@@ -172,6 +172,7 @@ The firmware defines these (in both firmwares they are in
 | Option | Type | Use |
 |---|---|---|
 | `AIRPLAY_HOMEKIT` | bool | pairing with Apple Home, `/configure`, HomeKit reset |
+| `AIRPLAY_SENDER_TAKES_ON_PLAY` | bool, optional | HomeKit build: a second sender takes the session when it plays (stream `SETUP`), not when it connects; not defined: when it connects |
 | `AIRPLAY_HOMEKIT_MANUFACTURER` | string | the manufacturer Home shows |
 | `AIRPLAY_HOMEKIT_SETUP_CODE` | string | the setup code for adding to Home |
 | `ENABLE_AIRPLAY_ARTWORK` | bool | announce artwork support (`md=0,1,2`) |

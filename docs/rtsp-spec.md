@@ -208,6 +208,11 @@ stop the previous stream/session, request closure of its control connection,
 and select the new sender's clock. A closing old connection cannot reclaim
 the session; its late control requests cannot drive the new owner's audio.
 Repeated SETUP by the current holder keeps its event port, clock and audio.
+With `AIRPLAY_SENDER_TAKES_ON_PLAY` defined, a HomeKit build does what a
+build without HomeKit does: the newcomer's session SETUP only opens its event
+port and listens while another sender holds the session (with none, it takes
+it as above), and ownership moves at its stream SETUP, when it plays. Until
+then its volume, flushes, anchors and pauses change nothing.
 
 Session ownership does not start buffered audio. AAC/buffered ALAC stream
 SETUP only starts reception; RECORD is an acknowledgment. Playback starts

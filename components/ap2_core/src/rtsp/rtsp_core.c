@@ -713,12 +713,29 @@ static void do_setup_session(rtsp_conn_t *c, const rtsp_msg_t *m, reply_t *r) {
     c->group_contains_leader = leader != 0;
   }
 #endif
-#ifdef CONFIG_AIRPLAY_HOMEKIT
+#if defined(CONFIG_AIRPLAY_HOMEKIT) && !defined(CONFIG_AIRPLAY_SENDER_TAKES_ON_PLAY)
   /* Selecting this speaker transfers ownership now. Buffered playback is
    * still gated by SETRATEANCHORTIME, not by pairing or session SETUP. */
   if (claim_session(c) != ESP_OK) {
     refuse(r, CODE_INTERNAL, "session takeover could not be prepared");
     return;
+  }
+#elif defined(CONFIG_AIRPLAY_HOMEKIT)
+  /* A second sender only listens until its stream SETUP (it plays): the
+   * sender that holds the session keeps it, and the newcomer's volume and
+   * playback requests do nothing meanwhile. With no holder this sender
+   * takes the session as before. */
+  if (s.holder == NULL || holds(c)) {
+    if (claim_session(c) != ESP_OK) {
+      refuse(r, CODE_INTERNAL, "session could not be prepared");
+      return;
+    }
+  } else if (event_port_open(c) != ESP_OK) {
+    refuse(r, CODE_INTERNAL, "no event port");
+    return;
+  } else {
+    RTSP_LOGI("connection %u: session held by connection %u, event port %u "
+              "listens until it plays", c->id, s.holder->id, c->event_port);
   }
 #else
   if (s.holder == NULL) {
@@ -824,6 +841,9 @@ static void do_setup_stream(rtsp_conn_t *c, const rtsp_msg_t *m, reply_t *r,
     refuse(r, CODE_INTERNAL, "session does not start");
     return;
   }
+#ifdef CONFIG_AIRPLAY_HOMEKIT
+  mdns_mark(); /* the session's group may have changed with its holder */
+#endif
   if (s.stream) {
     RTSP_LOGI("stream replaced");
     stream_stop();
